@@ -1,11 +1,10 @@
-<<<<<<< HEAD
-# 🌸 Perfumis – Online Perfume Shop
+# Perfumis – Online Perfume Shop
 
 Perfumis is an elegant online store for browsing, reviewing, and purchasing premium fragrances. It includes a customer-facing storefront and an admin panel for managing products, orders, and reports.
 
 ---
 
-## ⚙️ Technologies Used
+## ⚙ Technologies Used
 
 - **Backend**: PHP
 - **Database**: MySQL
@@ -14,7 +13,7 @@ Perfumis is an elegant online store for browsing, reviewing, and purchasing prem
 
 ---
 
-## 🛠 Importing the Database
+## Importing the Database
 
 To set up the database locally:
 
@@ -25,7 +24,7 @@ To set up the database locally:
 4. Under **Default Target Schema**, type `perfumis_db`
 5. Click **Start Import**
 
-📌 Make sure `includes/db.php` uses the correct credentials:
+Make sure `includes/db.php` uses the correct credentials:
 
 ```php
 $host = 'localhost';
