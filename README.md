@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🌸 Perfumis – Online Perfume Shop
 
 Perfumis is an elegant online store for browsing, reviewing, and purchasing premium fragrances. It includes a customer-facing storefront and an admin panel for managing products, orders, and reports.
