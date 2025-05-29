@@ -4,7 +4,7 @@ Perfumis is an elegant online store for browsing, reviewing, and purchasing prem
 
 ---
 
-## ⚙ Technologies Used
+## Technologies Used
 
 - **Backend**: PHP
 - **Database**: MySQL
