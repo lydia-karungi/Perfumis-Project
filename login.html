@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="css/login.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,100..900;1,100..900&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+  <div class="login-container">
+    <h2>Login to Your Account</h2>
+    <form id="loginForm">
+      <div class="input-group">
+        <i class="fas fa-user"></i>
+        <input type="text" id="email" name="email" placeholder="Enter your email" required>
+      </div>
+      <div class="input-group">
+        <i class="fas fa-lock"></i>
+        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+      </div>
+      <input type="submit" value="Login">
+      <div class="feedback"></div>
+    </form>
+    <p>Don’t have an account? <a href="signup.html">Sign up</a></p>
+  </div>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      var email = document.getElementById('email').value;
+      var password = document.getElementById('password').value;
+      var feedback = document.querySelector('.feedback');
+
+      if (!email || !password) {
+        feedback.textContent = 'Both email and password are required!';
+        feedback.style.color = 'red';
+        return;
+      }
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "login.php", true);
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          feedback.textContent = xhr.responseText;
+          if (xhr.responseText.includes("successful")) {
+            feedback.style.color = 'green';
+            setTimeout(function() {
+              window.location.href = 'index.php';
+            }, 2000);
+          } else {
+            feedback.style.color = 'red';
+          }
+        }
+      };
+      xhr.send("email=" + encodeURIComponent(email) + "&password=" + encodeURIComponent(password));
+    });
+  </script>
+</body>
+</html>
