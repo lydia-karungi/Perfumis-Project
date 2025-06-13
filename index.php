@@ -65,13 +65,16 @@ $isLoggedIn = isset($_SESSION['user_id']);
             <h1>What Are Customers Saying</h1>
         </div>
 
-        <div class="review-carousel">
-            <div class="carousel-container" id="carousel-container">
-                <!-- Review items will be dynamically inserted here -->
-            </div>
 
-            <!-- Carousel controls -->
+        <div class="review-carousel">
             <a class="carousel-control-prev" href="javascript:void(0);" id="prev">&#10094;</a>
+            
+            <div class="carousel-container" id="carousel-container">
+                <div class="carousel-group" id="carousel-group">
+                <!-- dynamically inserted .carousel-item elements -->
+                </div>
+            </div>
+            
             <a class="carousel-control-next" href="javascript:void(0);" id="next">&#10095;</a>
         </div>
 

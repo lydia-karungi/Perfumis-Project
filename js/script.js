@@ -50,17 +50,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (words.length <= maxWords) return cleanedText;
                     return words.slice(0, maxWords).join(' ') + '...';
                 }
-                  
+
                 function createProductCard(product) {
                     const truncatedDescription = truncateDescription(product.description, 30);
                     let imageUrl = product.image_url || product.image;
-                    
+
                     if (!imageUrl || imageUrl === 'images/rose_bloom.jpg' || imageUrl === 'images/oud_intense.jpg' || imageUrl === 'images/mystic_amber.jpg') {
                         imageUrl = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y0ZjRmNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5ObyBJbWFnZTwvdGV4dD48L3N2Zz4=';
                     }
-                    
+
                     const price = parseFloat(product.price || 0).toFixed(2);
-                    
+
                     return `
                         <div class="content-card">
                             <img src="${imageUrl}" alt="${product.name}" class="redirect-image" data-id="${product.id}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
@@ -98,11 +98,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     });
                 }
 
-                // Add event listeners for dynamically added cart buttons
                 document.querySelectorAll('.add-to-cart-btn').forEach(button => {
                     button.addEventListener('click', function () {
                         if (this.disabled) return;
-                        
+
                         try {
                             const product = JSON.parse(this.getAttribute('data-product'));
                             addToCart(product);
@@ -137,7 +136,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const shopByCategoryContainer = document.getElementById('shop-by-category');
         if (!shopByCategoryContainer) return;
-        
+
         shopByCategoryContainer.innerHTML = '';
 
         categories.forEach(category => {
@@ -184,42 +183,123 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const cart = JSON.parse(localStorage.getItem('cart')) || [];
         const cartItem = cart.find(item => item.id === product.id);
-        
+
         if (cartItem) {
             cartItem.quantity = parseInt(cartItem.quantity || 1) + 1;
         } else {
-            cart.push({ 
+            cart.push({
                 id: product.id,
                 name: product.name,
                 price: product.price,
                 image: product.image_url || product.image,
                 image_url: product.image_url || product.image,
-                quantity: 1 
+                quantity: 1
             });
         }
-        
+
         localStorage.setItem('cart', JSON.stringify(cart));
         displayMessage(`${product.name} has been added to your cart.`);
-        
-        // Update cart counter in header
+
         if (window.refreshCartCounter) {
             window.refreshCartCounter();
         }
     }
 
-    // Initialize
-    if (category) {
-        const categoryElement = document.getElementById('category');
-        if (categoryElement) {
-            categoryElement.value = category;
-        }
+    // NEW: Populate review form dropdown
+    function populateReviewProductDropdown() {
+        const dropdown = document.getElementById('reviewProduct');
+        if (!dropdown) return;
+
+        fetch('fetch_reviews.php?fetch=products')
+            .then(response => response.json())
+            .then(products => {
+                if (!Array.isArray(products)) {
+                    console.error('Product fetch failed for review form');
+                    return;
+                }
+
+                products.forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product.product_id;
+                    option.textContent = product.name;
+                    dropdown.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading review products:', error);
+            });
     }
 
+    // NEW: Load reviews into carousel
+    function loadReviews() {
+        const container = document.getElementById('carousel-group');
+        if (!container) return;
+
+        fetch('fetch_reviews.php?fetch=reviews')
+            .then(response => response.json())
+            .then(reviews => {
+                if (!Array.isArray(reviews)) {
+                    container.innerHTML = '<p>No reviews found.</p>';
+                    return;
+                }
+
+                container.innerHTML = '';
+                reviews.forEach(review => {
+                    const reviewItem = document.createElement('div');
+                    reviewItem.className = 'carousel-item';
+                    reviewItem.innerHTML = `
+                        <h4>${review.reviewer_name}</h4>
+                        <p><strong>${review.product_name}</strong></p>
+                        <p>${review.review_text}</p>
+                        <p>Rating: ${'⭐'.repeat(review.rating)}</p>
+                        <small>${new Date(review.created_at).toLocaleDateString()}</small>
+                    `;
+                    container.appendChild(reviewItem);
+                });
+
+                // Re-initialize carousel scrolling after reviews are loaded
+                setupReviewCarousel();
+            })
+            .catch(error => {
+                console.error('Error loading reviews:', error);
+            });
+    }
+
+    // NEW: Setup left/right scroll on review carousel
+    function setupReviewCarousel() {
+        const group = document.getElementById('carousel-group');
+        const prevBtn = document.getElementById('prev');
+        const nextBtn = document.getElementById('next');
+
+        if (!group || !prevBtn || !nextBtn) return;
+
+        const scrollStep = group.offsetWidth;
+
+        prevBtn.addEventListener('click', () => {
+            group.scrollBy({
+                left: -scrollStep,
+                behavior: 'smooth'
+            });
+        });
+
+        nextBtn.addEventListener('click', () => {
+            group.scrollBy({
+                left: scrollStep,
+                behavior: 'smooth'
+            });
+        });
+    }
+
+    // Initial calls
     const initialParams = new URLSearchParams();
     if (category) {
         initialParams.append('category', category);
+        const categoryElement = document.getElementById('category');
+        if (categoryElement) categoryElement.value = category;
     }
-    fetchProducts(initialParams);
 
+    fetchProducts(initialParams);
     fetchCategories();
+    populateReviewProductDropdown();
+    loadReviews(); // setupReviewCarousel is now called inside loadReviews()
 });

@@ -13,17 +13,17 @@ try {
         if (!file_exists($path)) {
             throw new Exception('.env file not found');
         }
-        
+
         $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($lines as $line) {
             if (strpos(trim($line), '#') === 0) {
                 continue; // Skip comments
             }
-            
+
             list($name, $value) = explode('=', $line, 2);
             $name = trim($name);
             $value = trim($value);
-            
+
             if (!array_key_exists($name, $_SERVER) && !array_key_exists($name, $_ENV)) {
                 putenv(sprintf('%s=%s', $name, $value));
                 $_ENV[$name] = $value;
@@ -31,7 +31,7 @@ try {
             }
         }
     }
-    
+
     // Load .env file
     loadEnv(__DIR__ . '/.env');
 
@@ -54,7 +54,6 @@ try {
 
     if ($fetch_type === 'reviews') {
         // Fetch reviews with user names and product names
-        // Handle both logged-in users and guest reviews
         $query = "SELECT 
                     r.review_id,
                     r.rating,
@@ -69,7 +68,7 @@ try {
                   LIMIT 20";
 
         $stmt = $conn->prepare($query);
-        
+
         if (!$stmt) {
             throw new Exception("Prepare failed: " . $conn->error);
         }
@@ -82,7 +81,6 @@ try {
         $reviews = [];
 
         while ($row = $result->fetch_assoc()) {
-            // Format the review data
             $reviews[] = [
                 'review_id' => $row['review_id'],
                 'reviewer_name' => $row['reviewer_name'] ?: 'Anonymous Customer',
@@ -96,16 +94,41 @@ try {
         $stmt->close();
         $conn->close();
 
-        // Return the reviews
         echo json_encode($reviews);
-        
+
+    } elseif ($fetch_type === 'products') {
+        // Fetch products for the review dropdown
+        $query = "SELECT product_id, name FROM products ORDER BY name ASC";
+        $stmt = $conn->prepare($query);
+
+        if (!$stmt) {
+            throw new Exception("Prepare failed: " . $conn->error);
+        }
+
+        if (!$stmt->execute()) {
+            throw new Exception("Execute failed: " . $stmt->error);
+        }
+
+        $result = $stmt->get_result();
+        $products = [];
+
+        while ($row = $result->fetch_assoc()) {
+            $products[] = [
+                'product_id' => $row['product_id'],
+                'name' => $row['name']
+            ];
+        }
+
+        $stmt->close();
+        $conn->close();
+
+        echo json_encode($products);
     } else {
-        // Invalid request
+        // Invalid fetch type
         echo json_encode(['error' => 'Invalid fetch type']);
     }
 
 } catch (Exception $e) {
-    // Handle any errors
     http_response_code(500);
     echo json_encode(['error' => 'Server error: ' . $e->getMessage()]);
 }
