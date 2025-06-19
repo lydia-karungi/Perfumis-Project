@@ -65,30 +65,30 @@ $isLoggedIn = isset($_SESSION['user_id']);
                         </ul>
                     </li>
                     <li><a href="collections.php">Collections</a></li>
-                    <li><a href="gifts.php">Gifts</a>
+                    <li><a href="collections.php?category=gifts">Gifts</a>
                         <ul class="dropdown">
-                            <li><a href="gifts.php?category=her"><i class="fas fa-gift"></i> Gifts for Her</a></li>
-                            <li><a href="gifts.php?category=him"><i class="fas fa-gift"></i> Gifts for Him</a></li>
-                            <li><a href="gifts.php?category=wedding"><i class="fas fa-heart"></i> Wedding Gifts</a></li>
-                            <li><a href="gifts.php?category=sets"><i class="fas fa-box"></i> Gift Sets</a></li>
+                            <li><a href="collections.php?category=gifts&type=her"><i class="fas fa-gift"></i> Gifts for Her</a></li>
+                            <li><a href="collections.php?category=gifts&type=him"><i class="fas fa-gift"></i> Gifts for Him</a></li>
+                            <li><a href="collections.php?category=gifts&type=wedding"><i class="fas fa-heart"></i> Wedding Gifts</a></li>
+                            <li><a href="collections.php?category=gifts"><i class="fas fa-box"></i> Gift Sets</a></li>
                         </ul>
                     </li>
-                    <li><a href="collections.php?new=true">New Arrivals</a></li>
-                    <li><a href="brands.php">Brands</a>
+                    <li><a href="collections.php?category=new-arrivals">New Arrivals</a></li>
+                    <li><a href="collections.php?view=brands">Brands</a>
                         <ul class="dropdown">
-                            <li><a href="brands.php?brand=dior"><i class="fas fa-star"></i> Dior</a></li>
-                            <li><a href="brands.php?brand=chanel"><i class="fas fa-star"></i> Chanel</a></li>
-                            <li><a href="brands.php?brand=gucci"><i class="fas fa-star"></i> Gucci</a></li>
-                            <li><a href="brands.php?brand=armani"><i class="fas fa-star"></i> Armani</a></li>
-                            <li><a href="brands.php?brand=tomford"><i class="fas fa-star"></i> Tom Ford</a></li>
+                            <li><a href="collections.php?brand=dior"><i class="fas fa-star"></i> Dior</a></li>
+                            <li><a href="collections.php?brand=chanel"><i class="fas fa-star"></i> Chanel</a></li>
+                            <li><a href="collections.php?brand=gucci"><i class="fas fa-star"></i> Gucci</a></li>
+                            <li><a href="collections.php?brand=armani"><i class="fas fa-star"></i> Armani</a></li>
+                            <li><a href="collections.php?brand=tomford"><i class="fas fa-star"></i> Tom Ford</a></li>
                         </ul>
                     </li>
-                    <li><a href="accessories.php">Accessories</a></li>
-                    <li><a href="samples.php">Samples</a>
+                    <li><a href="collections.php?category=accessories">Accessories</a></li>
+                    <li><a href="collections.php?category=samples">Samples</a>
                         <ul class="dropdown">
-                            <li><a href="samples.php?type=samples"><i class="fas fa-vial"></i> Perfume Samples</a></li>
-                            <li><a href="samples.php?type=travel"><i class="fas fa-plane"></i> Travel Sprays</a></li>
-                            <li><a href="samples.php?type=storage"><i class="fas fa-box"></i> Storage</a></li>
+                            <li><a href="collections.php?category=samples&type=samples"><i class="fas fa-vial"></i> Perfume Samples</a></li>
+                            <li><a href="collections.php?category=samples&type=travel"><i class="fas fa-plane"></i> Travel Sprays</a></li>
+                            <li><a href="collections.php?category=samples&type=storage"><i class="fas fa-box"></i> Storage</a></li>
                         </ul>
                     </li>
                     <li><a href="scent-quiz.php">Scent Quiz</a></li>

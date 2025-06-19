@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     return words.slice(0, maxWords).join(' ') + '...';
                 }
 
+                // UPDATED: Amazon-style product card - whole card clickable, no add to cart button
                 function createProductCard(product) {
                     const truncatedDescription = truncateDescription(product.description, 30);
                     let imageUrl = product.image_url || product.image;
@@ -61,25 +62,75 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     const price = parseFloat(product.price || 0).toFixed(2);
 
-                    return `
-                        <div class="content-card">
-                            <img src="${imageUrl}" alt="${product.name}" class="redirect-image" data-id="${product.id}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="image-placeholder" style="display:none; width:100%; height:200px; background:#f4f4f4; align-items:center; justify-content:center; color:#999; font-size:14px;">No Image Available</div>
-                            <div class="card-info">
-                                <h4>${product.name}</h4>
-                                <p style="text-align: left;">
-                                    ${truncatedDescription} <a href="product_detail.php?id=${product.id}" style="color: #bf2e1a; text-decoration: none;">for more info</a>
-                                </p>
-                                <p style="text-align: left; color: #bf2e1a;">$${price}</p>
-                                <div class="product-stock ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}">
-                                    ${product.stock > 0 ? `In Stock (${product.stock})` : 'Out of Stock'}
+                    // Check if we're on a product list page (collections.php) vs homepage
+                    const isProductListPage = productList !== null;
+
+                    if (isProductListPage) {
+                        // For collections page - keep the old style with add to cart button
+                        return `
+                            <div class="content-card">
+                                <img src="${imageUrl}" alt="${product.name}" class="redirect-image" data-id="${product.id}" 
+                                     style="cursor: pointer; transition: transform 0.3s ease;" 
+                                     onclick="window.location.href='product_detail.php?id=${product.id}'"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="image-placeholder" style="display:none; width:100%; height:200px; background:#f4f4f4; align-items:center; justify-content:center; color:#999; font-size:14px;">No Image Available</div>
+                                <div class="card-info">
+                                    <h4 style="cursor: pointer;" onclick="window.location.href='product_detail.php?id=${product.id}'">${product.name}</h4>
+                                    <p style="text-align: left;">
+                                        ${truncatedDescription} <a href="product_detail.php?id=${product.id}" style="color: #bf2e1a; text-decoration: none;">for more info</a>
+                                    </p>
+                                    <p style="text-align: left; color: #bf2e1a;">$${price}</p>
+                                    <div class="product-stock ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}">
+                                        ${product.stock > 0 ? `In Stock (${product.stock})` : 'Out of Stock'}
+                                    </div>
+                                    <button class="add-to-cart-btn" onclick="handleAddToCart('${product.id}', '${product.name.replace(/'/g, "\\'")}', '${product.price}', '${imageUrl}', ${product.stock})" ${product.stock <= 0 ? 'disabled' : ''}>
+                                        ${product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
+                                    </button>
                                 </div>
-                                <button class="add-to-cart-btn" data-product='${JSON.stringify(product)}' ${product.stock <= 0 ? 'disabled' : ''}>
-                                    ${product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
-                                </button>
                             </div>
-                        </div>
-                    `;
+                        `;
+                    } else {
+                        // For homepage - new Amazon-style clickable cards
+                        return `
+                            <div class="content-card" 
+                                 style="cursor: pointer; transition: all 0.3s ease; height: 380px;" 
+                                 onclick="window.location.href='product_detail.php?id=${product.id}'"
+                                 onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 30px rgba(0, 0, 0, 0.2)'"
+                                 onmouseout="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0, 0, 0, 0.15)'">
+                                 
+                                <img src="${imageUrl}" 
+                                     alt="${product.name}" 
+                                     style="transition: transform 0.3s ease; height: 200px; width: 100%; object-fit: cover; border-radius: 12px 12px 0 0;" 
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                     
+                                <div class="image-placeholder" style="display:none; width:100%; height:200px; background:#f4f4f4; align-items:center; justify-content:center; color:#999; font-size:14px; border-radius: 12px 12px 0 0;">No Image Available</div>
+                                
+                                <div class="card-info" style="padding: 20px; height: calc(100% - 200px); display: flex; flex-direction: column; justify-content: space-between;">
+                                    <div>
+                                        <h4 style="margin: 0 0 10px 0; color: #333; font-size: 16px; font-weight: 600; line-height: 1.3;">${product.name}</h4>
+                                           
+                                        <p style="color: #666; font-size: 13px; line-height: 1.4; margin: 0 0 10px 0; text-align: left;">
+                                            ${truncatedDescription}
+                                        </p>
+                                        
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                            <p style="margin: 0; color: #bf2e1a; font-size: 18px; font-weight: 700;">$${price}</p>
+                                            <div class="product-stock ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}" style="font-size: 11px;">
+                                                ${product.stock > 0 ? `In Stock` : 'Out of Stock'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Call-to-action text instead of button -->
+                                    <div class="cta-hint" style="text-align: center; padding: 12px; background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 8px; border: 1px solid #dee2e6; transition: all 0.3s ease;">
+                                        <span style="color: #bf2e1a; font-weight: 600; font-size: 14px;">
+                                            👆 Click to view details & add to cart
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
                 }
 
                 if (bestSellersContainer) {
@@ -98,27 +149,23 @@ document.addEventListener('DOMContentLoaded', function () {
                     });
                 }
 
-                document.querySelectorAll('.add-to-cart-btn').forEach(button => {
-                    button.addEventListener('click', function () {
-                        if (this.disabled) return;
+                // Only add event listeners for collections page where we still have add to cart buttons
+                if (productList) {
+                    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+                        button.addEventListener('click', function (e) {
+                            e.stopPropagation(); // Prevent card click when clicking button
+                            if (this.disabled) return;
 
-                        try {
-                            const product = JSON.parse(this.getAttribute('data-product'));
-                            addToCart(product);
-                        } catch (error) {
-                            console.error('Error adding to cart:', error);
-                            displayMessage('Error adding product to cart', 'error');
-                        }
+                            try {
+                                const product = JSON.parse(this.getAttribute('data-product'));
+                                addToCart(product);
+                            } catch (error) {
+                                console.error('Error adding to cart:', error);
+                                displayMessage('Error adding product to cart', 'error');
+                            }
+                        });
                     });
-                });
-
-                document.querySelectorAll('.redirect-image').forEach(image => {
-                    image.style.cursor = 'pointer';
-                    image.addEventListener('click', function () {
-                        const productId = this.getAttribute('data-id');
-                        window.location.href = `product_detail.php?id=${productId}`;
-                    });
-                });
+                }
             })
             .catch(error => {
                 console.error('Error fetching products:', error);
@@ -152,11 +199,44 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Helper function for add to cart (used on collections page)
+    function handleAddToCart(productId, productName, productPrice, productImage, productStock) {
+        if (productStock <= 0) {
+            displayMessage('This product is out of stock', 'error');
+            return;
+        }
+
+        const product = {
+            id: productId,
+            name: productName,
+            price: productPrice,
+            image: productImage,
+            image_url: productImage,
+            stock: productStock
+        };
+
+        addToCart(product);
+    }
+
+    // Make handleAddToCart globally accessible for inline onclick handlers
+    window.handleAddToCart = handleAddToCart;
+
     function displayMessage(message, type = 'success') {
         const messageBox = document.createElement('div');
         messageBox.textContent = message;
         messageBox.className = 'message-box';
-        messageBox.style.backgroundColor = type === 'error' ? '#ff4444' : '#4CAF50';
+        messageBox.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-in-out;
+            background-color: ${type === 'error' ? '#ff4444' : '#4CAF50'};
+        `;
         document.body.appendChild(messageBox);
 
         setTimeout(() => {
@@ -205,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // NEW: Populate review form dropdown
+    // Populate review form dropdown
     function populateReviewProductDropdown() {
         const dropdown = document.getElementById('reviewProduct');
         if (!dropdown) return;
@@ -230,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    // NEW: Load reviews into carousel
+    // Load reviews into carousel
     function loadReviews() {
         const container = document.getElementById('carousel-group');
         if (!container) return;
@@ -265,7 +345,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    // NEW: Setup left/right scroll on review carousel
+    // Setup left/right scroll on review carousel
     function setupReviewCarousel() {
         const group = document.getElementById('carousel-group');
         const prevBtn = document.getElementById('prev');
@@ -301,5 +381,5 @@ document.addEventListener('DOMContentLoaded', function () {
     fetchProducts(initialParams);
     fetchCategories();
     populateReviewProductDropdown();
-    loadReviews(); // setupReviewCarousel is now called inside loadReviews()
+    loadReviews();
 });
