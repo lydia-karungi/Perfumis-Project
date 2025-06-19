@@ -985,6 +985,37 @@ input[type="submit"]:hover {
     }
 }
 
+/* Enhanced hover effect for homepage product cards */
+.content-card:hover .cta-hint {
+    background: linear-gradient(135deg, #bf2e1a, #d73527) !important;
+    color: white !important;
+    transform: scale(1.02) !important;
+}
+
+.cta-hint {
+    transition: all 0.3s ease !important;
+}
+
+/* Better card hover effects for homepage */
+.content-card[onclick]:hover {
+    transform: translateY(-8px) !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2) !important;
+}
+
+.content-card[onclick]:hover img {
+    transform: scale(1.05) !important;
+}
+
+/* Hide add to cart buttons on homepage cards that are fully clickable */
+.content-card[onclick] .add-to-cart-btn {
+    display: none !important;
+}
+
+/* Homepage cards height override */
+.content-card[style*="height: 380px"] {
+    height: 380px !important;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .banner {
@@ -996,7 +1027,7 @@ input[type="submit"]:hover {
         padding: 20px 15px;
         gap: 20px;
     }
-    
+
     .discount-info {
         font-size: 0.9em;
         padding: 12px 20px;
@@ -1226,4 +1257,30 @@ input[type="submit"]:hover {
     .review-carousel {
         padding: 0 30px;
     }
+}
+
+/* Force hide add-to-cart buttons on homepage cards - STRONGER RULE */
+#best-sellers .add-to-cart-btn,
+.content-container .content-card[onclick] .add-to-cart-btn {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Adjust card height to accommodate missing button space */
+#best-sellers .content-card,
+.content-container .content-card[onclick] {
+    height: 350px !important;
+    padding-bottom: 20px !important;
+}
+
+/* Make sure card info fills the space properly */
+#best-sellers .card-info,
+.content-container .content-card[onclick] .card-info {
+    height: calc(100% - 200px) !important;
+    padding: 20px !important;
+    box-sizing: border-box !important;
 }

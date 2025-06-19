@@ -1,57 +1,123 @@
 <?php
-session_start(); // Start the session
+session_start();
 
-require 'vendor/autoload.php';
-use Dotenv\Dotenv;
+// Enable error reporting for debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-// Load .env file
-$dotenv = Dotenv::createImmutable(__DIR__);
-$dotenv->load();
+// Simple function to load .env file manually (no Composer needed)
+function loadEnv($path) {
+    if (!file_exists($path)) {
+        // If no .env file, use default values
+        return [
+            'DB_SERVERNAME' => 'localhost',
+            'DB_USERNAME' => 'root',
+            'DB_PASSWORD' => '',
+            'DB_NAME' => 'perfumis_db'
+        ];
+    }
+    
+    $env = [];
+    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) {
+            continue; // Skip comments
+        }
+        
+        if (strpos($line, '=') !== false) {
+            list($name, $value) = explode('=', $line, 2);
+            $env[trim($name)] = trim($value);
+        }
+    }
+    
+    return $env;
+}
+
+// Load environment variables
+$env = loadEnv(__DIR__ . '/.env');
 
 // Database connection settings
-$servername = $_ENV['DB_SERVERNAME'];
-$username = $_ENV['DB_USERNAME'];
-$password = $_ENV['DB_PASSWORD'];
-$dbname = $_ENV['DB_NAME'];
+$servername = $env['DB_SERVERNAME'] ?? 'localhost';
+$username = $env['DB_USERNAME'] ?? 'root';
+$password = $env['DB_PASSWORD'] ?? '';
+$dbname = $env['DB_NAME'] ?? 'perfumis_db';
 
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
+try {
+    // Create connection
+    $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+    // Check connection
+    if ($conn->connect_error) {
+        throw new Exception("Connection failed: " . $conn->connect_error);
+    }
 
-// Get the email and password from POST
-$email = $_POST['email'];
-$plainPassword = $_POST['password']; // Store the original password
+    // Validate input
+    if (!isset($_POST['email']) || !isset($_POST['password'])) {
+        throw new Exception("Email and password are required!");
+    }
 
-// Hash the password
-$hashedPassword = password_hash($plainPassword, PASSWORD_DEFAULT);
+    $email = trim($_POST['email']);
+    $plainPassword = $_POST['password'];
 
-// Check if the email already exists
-$stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
-$stmt->bind_param("s", $email);
-$stmt->execute();
-$result = $stmt->get_result();
+    // Basic validation
+    if (empty($email) || empty($plainPassword)) {
+        throw new Exception("Email and password cannot be empty!");
+    }
 
-if ($result->num_rows > 0) {
-    // Email already exists
-    echo "Email already registered!";
-} else {
-    // Insert the new user into the database
-    $stmt = $conn->prepare("INSERT INTO users (email, password) VALUES (?, ?)");
-    $stmt->bind_param("ss", $email, $hashedPassword);
-    if ($stmt->execute()) {
-        // Set session variables and log the user in
-        $_SESSION['user_id'] = $stmt->insert_id;
-        echo "Signup successful! Redirecting...";
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        throw new Exception("Invalid email format!");
+    }
+
+    if (strlen($plainPassword) < 6) {
+        throw new Exception("Password must be at least 6 characters long!");
+    }
+
+    // Hash the password
+    $hashedPassword = password_hash($plainPassword, PASSWORD_DEFAULT);
+
+    // Check if the email already exists
+    $stmt = $conn->prepare("SELECT user_id FROM users WHERE email = ?");
+    if (!$stmt) {
+        throw new Exception("Database error: " . $conn->error);
+    }
+    
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        echo "Email already registered! Please use a different email or login instead.";
     } else {
-        echo "Error: " . $stmt->error;
+        // Insert the new user into the database
+        $insertStmt = $conn->prepare("INSERT INTO users (email, password, created_at) VALUES (?, ?, NOW())");
+        if (!$insertStmt) {
+            throw new Exception("Database error: " . $conn->error);
+        }
+        
+        $insertStmt->bind_param("ss", $email, $hashedPassword);
+        
+        if ($insertStmt->execute()) {
+            // Set session variables and log the user in
+            $_SESSION['user_id'] = $insertStmt->insert_id;
+            $_SESSION['user_email'] = $email;
+            echo "Signup successful! Redirecting...";
+        } else {
+            throw new Exception("Error creating account: " . $insertStmt->error);
+        }
+        
+        $insertStmt->close();
+    }
+
+    $stmt->close();
+
+} catch (Exception $e) {
+    echo "Error: " . $e->getMessage();
+} finally {
+    // Close connection if it exists
+    if (isset($conn) && $conn) {
+        $conn->close();
     }
 }
-
-// Close connection
-$stmt->close();
-$conn->close();
 ?>

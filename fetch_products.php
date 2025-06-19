@@ -132,7 +132,10 @@ try {
 
     // Fetch a single product by ID
     if ($product_id) {
-        $stmt = $conn->prepare("SELECT product_id as id, name, description, price, stock, category_id, image_url FROM products WHERE product_id = ?");
+        $stmt = $conn->prepare("SELECT p.product_id as id, p.name, p.description, p.price, p.stock, p.category_id, p.image_url, c.category_name 
+                               FROM products p 
+                               LEFT JOIN categories c ON p.category_id = c.category_id 
+                               WHERE p.product_id = ?");
         $stmt->bind_param("i", $product_id);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -141,7 +144,6 @@ try {
         $conn->close();
 
         if ($product) {
-            // Database already has correct image URLs, no need to modify
             echo json_encode($product);
         } else {
             echo json_encode(['error' => 'Product not found']);
@@ -149,14 +151,16 @@ try {
         exit;
     }
 
-    // Base query to fetch products (using your actual schema column names)
-    $query = "SELECT p.product_id as id, p.name, p.description, p.price, p.stock, p.category_id, p.image_url 
-              FROM products p WHERE p.price >= ? AND p.price <= ?";
+    // Base query to fetch products with category information
+    $query = "SELECT p.product_id as id, p.name, p.description, p.price, p.stock, p.category_id, p.image_url, c.category_name 
+              FROM products p 
+              LEFT JOIN categories c ON p.category_id = c.category_id 
+              WHERE p.price >= ? AND p.price <= ?";
     $types = 'dd';
     $params = [$minPrice, $maxPrice];
 
-    // Add additional filters based on category and availability
-    if ($category) {
+    // Handle category filtering
+    if ($category && $category !== 'collections') {
         // Map common category names to your database values
         $categoryMapping = [
             'men' => "Men's Fragrance",
@@ -166,24 +170,22 @@ try {
             'bestsellers' => 'Best Sellers',
             'new-arrivals' => 'New Arrivals',
             'gifts' => 'Gift Sets',
-            'everyday' => 'Everyday Wear'
+            'everyday' => 'Everyday Wear',
+            'samples' => 'Samples'
         ];
         
         $dbCategory = $categoryMapping[strtolower($category)] ?? $category;
         
-        // Fetch products by category name
-        $query .= " AND p.category_id = (SELECT category_id FROM categories WHERE category_name = ?)";
+        // Filter by category name
+        $query .= " AND c.category_name = ?";
         $types .= 's';
         $params[] = $dbCategory;
-        
-        if ($availability) {
-            $query .= $availability === 'available' ? " AND p.stock > 0" : " AND p.stock = 0";
-        }
-    } else {
-        // Add availability filter if no category is specified
-        if ($availability) {
-            $query .= $availability === 'available' ? " AND p.stock > 0" : " AND p.stock = 0";
-        }
+    }
+    // If category is 'collections' or empty, show all products (no additional filter)
+
+    // Add availability filter
+    if ($availability) {
+        $query .= $availability === 'available' ? " AND p.stock > 0" : " AND p.stock = 0";
     }
 
     // Add ORDER BY clause to get consistent results
@@ -197,8 +199,8 @@ try {
     }
 
     // Bind parameters to the prepared statement
-    if ($category) {
-        $stmt->bind_param($types, $minPrice, $maxPrice, $dbCategory);
+    if ($category && $category !== 'collections') {
+        $stmt->bind_param($types, ...$params);
     } else {
         $stmt->bind_param('dd', $minPrice, $maxPrice);
     }
@@ -212,7 +214,6 @@ try {
     // Fetch all matching products
     $products = [];
     while ($row = $result->fetch_assoc()) {
-        // Database already has correct image URLs, no need to modify
         $products[] = $row;
     }
 
