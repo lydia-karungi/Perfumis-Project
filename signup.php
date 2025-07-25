@@ -39,10 +39,10 @@ function loadEnv($path) {
 $env = loadEnv(__DIR__ . '/.env');
 
 // Database connection settings from .env file
-$servername = $_ENV['DB_HOST'] ?? '127.0.0.1';
-$username   = $_ENV['DB_USER'] ?? 'root';
-$password   = $_ENV['DB_PASS'] ?? '';
-$dbname     = $_ENV['DB_NAME'] ?? 'perfumis_db';
+$servername = $env['DB_HOST'] ?? '127.0.0.1';
+$username   = $env['DB_USER'] ?? 'root';
+$password   = $env['DB_PASS'] ?? '';
+$dbname     = $env['DB_NAME'] ?? 'perfumis_db';
 
 try {
     // Create connection
