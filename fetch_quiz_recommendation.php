@@ -38,11 +38,11 @@ try {
     
     loadEnv(__DIR__ . '/.env');
 
-    // Database connection
-    $servername = $_ENV['DB_SERVERNAME'] ?? '127.0.0.1';
-    $username = $_ENV['DB_USERNAME'] ?? 'root';
-    $password = $_ENV['DB_PASSWORD'] ?? '';
-    $dbname = $_ENV['DB_NAME'] ?? 'perfumis_db';
+    // Database connection settings from .env file
+    $servername = $_ENV['DB_HOST'] ?? '127.0.0.1';
+    $username   = $_ENV['DB_USER'] ?? 'root';
+    $password   = $_ENV['DB_PASS'] ?? '';
+    $dbname     = $_ENV['DB_NAME'] ?? 'perfumis_db';
 
     $conn = new mysqli($servername, $username, $password, $dbname);
 
